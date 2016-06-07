@@ -1436,6 +1436,9 @@
         if ($tab.data('section') == "systems") {
           $('.unit-select').val('day')
           $('.intervals-input').val('14')
+        } else if ($tab.data('section') == "sre") {
+          $('.unit-select').val('week')
+          $('.intervals-input').val('16')
         }
         runQuery();
       });
