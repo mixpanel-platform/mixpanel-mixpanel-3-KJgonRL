@@ -1366,8 +1366,6 @@
           $.get("https://mixpanel.com/api/2.0/segmentation", signData(data, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart = $('.chart.report-read-api-slow-projects .body');
             chart.MPChart('setData', results.data.values);
-            chart.legend.align = "right";
-            chart.redraw();
           })
         });
       }, // End systems
@@ -1392,7 +1390,11 @@
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData(data, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
             chart_data = {};
             for (var i in results) {
-                chart_data[results[i].key[0]] = results[i].value;
+                var key = results[i].key[0];
+                if (key.startsWith("Ops lead (")) {
+                    key = key.substr(10, key.length - 12)
+                }
+                chart_data[key] = results[i].value;
             }
             $('.chart.nigh-time-pages .body').MPChart('setData', chart_data);
             //$('#nightTimeEscalationsElement').jsonView(chart_data);
