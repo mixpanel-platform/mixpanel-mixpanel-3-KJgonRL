@@ -1494,7 +1494,7 @@
             var chart_data = {};
             for (var i in results) {
                 var key = results[i].key[0];
-                chart_data[key] = results[i].value.success / (results[i].value.success + results[i].value.failure);
+                chart_data['master'][key] = results[i].value.success / (results[i].value.success + results[i].value.failure);
             }
             $('.chart.build-bot-master .body').MPChart('setData', chart_data);
           })
