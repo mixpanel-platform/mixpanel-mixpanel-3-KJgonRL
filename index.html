@@ -1494,7 +1494,7 @@
           }
           //creds.apiKey, creds.apiSecret
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData(data, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
-            var chart_data = {};
+            var chart_data = {master: {}};
             for (var i in results) {
                 var key = results[i].key[0];
                 chart_data['master'][key] = results[i].value.success / (results[i].value.success + results[i].value.failure);
