@@ -1464,7 +1464,7 @@
             params: JSON.stringify(globalParams),
             script: $.trim($("#nightTimeEscalationsQuery").html()),
           }, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
-            var chart_data = {};
+            var chart_data_1 = {};
             for (var i in results) {
                 var key = results[i].key[0];
                 if (key.startsWith("Ops lead (")) {
@@ -1492,7 +1492,7 @@
             params: JSON.stringify(globalParams),
             script: $.trim($("#buildBotSuccessRateQuery").html()),
           }, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
-            var chart_data = {master: {}};
+            var chart_data_2 = {master: {}};
             for (var i in results) {
                 chart_data['master'][results[i].key[0]] = results[i].value.success / (results[i].value.success + results[i].value.failure);
             }
