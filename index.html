@@ -1457,14 +1457,13 @@
         // Night time escalations
         // TODO: 945801 after change to allowed_projects populated
         
-        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 620033}).done(function(creds) {
+        //getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 620033}).done(function(creds) {
         
-          var data = {
+          //creds.apiKey, creds.apiSecret
+          $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
             script: $.trim($("#nightTimeEscalationsQuery").html()),
-          }
-          //creds.apiKey, creds.apiSecret
-          $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData(data, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
+          }, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
             var chart_data = {};
             for (var i in results) {
                 var key = results[i].key[0];
@@ -1480,27 +1479,26 @@
             $('.chart.nigh-time-pages .body').MPChart('setData', chart_data);
             //$('#nightTimeEscalationsElement').jsonView(chart_data);
           })
-        });
+        //});
         
         // End Night time escalations
         
         //Buildbot
         
         // TODO: 945801 after change to allowed_projects populated
-        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 620033}).done(function(creds) {
-          var data = {
+        //getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 620033}).done(function(creds) {
+          //creds.apiKey, creds.apiSecret
+          $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
             script: $.trim($("#buildBotSuccessRateQuery").html()),
-          }
-          //creds.apiKey, creds.apiSecret
-          $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData(data, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
+          }, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
             var chart_data = {master: {}};
             for (var i in results) {
                 chart_data['master'][results[i].key[0]] = results[i].value.success / (results[i].value.success + results[i].value.failure);
             }
             $('.chart.build-bot .body').MPChart('setData', chart_data);
           })
-        });
+        //});
         // End Buildbot
         
       } // End sre
