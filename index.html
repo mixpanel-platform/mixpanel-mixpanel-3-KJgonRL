@@ -1392,7 +1392,11 @@
             for (var i in results) {
                 var key = results[i].key[0];
                 if (key.startsWith("Ops lead (")) {
-                    key = key.substr(10, key.length - 11)
+                    if key.endsWith(" first)")
+                        key = key.substr(10, key.length - 17)
+                    else {
+                        key = key.substr(10, key.length - 10)
+                    }
                 }
                 chart_data[key] = results[i].value;
             }
