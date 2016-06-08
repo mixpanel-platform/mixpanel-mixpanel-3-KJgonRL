@@ -1367,6 +1367,7 @@
             var chart = $('.chart.report-read-api-slow-projects .body');
             chart.MPChart('setData', results.data.values);
             chart.legend.align = "right";
+            chart.redraw();
           })
         });
       }, // End systems
