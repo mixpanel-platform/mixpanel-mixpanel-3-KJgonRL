@@ -668,9 +668,9 @@
         
       <div class="chart build-bot">
         <div class="header">
-          <div class="title">Buildbod success rate</div>
+          <div class="title">Buildbod failre rate</div>
             <div class="help-tip">
-                <p class="tooltip">success / (success + failure)</p>
+                <p class="tooltip">failure / (success + failure)</p>
             </div>
         </div>
         <div class="body"></div>
@@ -790,7 +790,7 @@
         }
     </script>
     
-    <script type="text/jql" id="buildBotSuccessRateQuery">
+    <script type="text/jql" id="buildBotFailureRateQuery">
         function timestampToDate(timestamp) {
           var result = new Date(0);
           result.setUTCSeconds(timestamp);
@@ -1489,11 +1489,11 @@
           //creds.apiKey, creds.apiSecret
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#buildBotSuccessRateQuery").html()),
+            script: $.trim($("#buildBotFailureRateQuery").html()),
           }, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
             var chart_data = {master: {}};
             for (var i in results) {
-                chart_data['master'][results[i].key[0]] = results[i].value.success / (results[i].value.success + results[i].value.failure);
+                chart_data['master'][results[i].key[0]] = results[i].value.failure / (results[i].value.success + results[i].value.failure);
             }
             $('.chart.build-bot .body').MPChart('setData', chart_data);
           })
