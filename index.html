@@ -666,9 +666,9 @@
         <!--<div class="result" id="nightTimeEscalationsElement">
          </div>-->
         
-        <div class="chart build-bot-master">
+        <div class="chart build-bot">
         <div class="header">
-          <div class="title">Buildbod master success rate</div>
+          <div class="title">Buildbod success rate</div>
             <div class="help-tip">
                 <p class="tooltip">success / (success + failure)</p>
             </div>
@@ -1456,7 +1456,7 @@
         }
         // Night time escalations
         // TODO: 945801 after change to allowed_projects populated
-        /*
+        
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 620033}).done(function(creds) {
         
           var data = {
@@ -1481,7 +1481,7 @@
             //$('#nightTimeEscalationsElement').jsonView(chart_data);
           })
         });
-        */
+        
         // End Night time escalations
         
         //Buildbot
@@ -1498,7 +1498,7 @@
             for (var i in results) {
                 chart_data['master'][results[i].key[0]] = results[i].value.success / (results[i].value.success + results[i].value.failure);
             }
-            $('.chart.build-bot-master .body').MPChart('setData', chart_data);
+            $('.chart.build-bot .body').MPChart('setData', chart_data);
           })
         });
         // End Buildbot
