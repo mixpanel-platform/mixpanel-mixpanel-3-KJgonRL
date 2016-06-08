@@ -1364,7 +1364,9 @@
           })
           
           $.get("https://mixpanel.com/api/2.0/segmentation", signData(data, creds.apiKey, creds.apiSecret)).done(function(results) {
-            $('.chart.report-read-api-slow-projects .body').MPChart('setData', results.data.values);
+            var chart = $('.chart.report-read-api-slow-projects .body');
+            chart.MPChart('setData', results.data.values);
+            chart.legend.align = "right";
           })
         });
       }, // End systems
