@@ -1530,7 +1530,7 @@
             for (var i in results) {
                 chart_data[results[i].key[0]] = {}
                 for (var k in result[i].value) {
-                    chart_data[results[i].key[0]][k] = result[i].value[k].failure
+                    chart_data[results[i].key[0]][k] = results[i].value[k].failure
                 }
             }
             $('.chart.build-bot .body').MPChart('setData', chart_data);
