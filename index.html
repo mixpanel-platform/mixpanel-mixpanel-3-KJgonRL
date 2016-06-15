@@ -907,7 +907,7 @@
           .groupBy([function (e) {return e.key[0]}], reduceOnFirstField)
           ;
         }
-    <script/>
+    </script>
     
     <script type="text/jql" id="buildBotFailureRateQuery">
         function timestampToDate(timestamp) {
@@ -1626,6 +1626,7 @@
                 chart_data[key] = results[i].value;
             }
             $('.chart.nigh-time-pages .body').MPChart('setData', chart_data);
+            //$('#nightTimeEscalationsElement').jsonView(chart_data);
           })
         });
         
@@ -1651,7 +1652,7 @@
         
         // Fab
         
-        /*getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
+        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
             script: $.trim($("#fabDeployQuery").html()),
@@ -1665,7 +1666,7 @@
             }
             $('.chart.build-bot .body').MPChart('setData', chart_data);
           })
-        });*/
+        });
         
         // End Fab
         
