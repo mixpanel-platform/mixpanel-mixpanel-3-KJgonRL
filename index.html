@@ -668,9 +668,19 @@
         
       <div class="chart build-bot">
         <div class="header">
-          <div class="title">Build failre rate %</div>
+          <div class="title">Buildbot failed stages</div>
             <div class="help-tip">
-                <p class="tooltip">failure / (success + failure) * 100%</p>
+                <p class="tooltip">Stages that are failing during master checks</p>
+            </div>
+        </div>
+        <div class="body"></div>
+      </div>
+      
+      <div class="chart fab-deploys">
+        <div class="header">
+          <div class="title">Fabric deploys</div>
+            <div class="help-tip">
+                <p class="tooltip">Fab deploy commands</p>
             </div>
         </div>
         <div class="body"></div>
@@ -789,6 +799,115 @@
           ;
         }
     </script>
+    
+    <script type="text/jql" id="fabDeployQuery">
+        function timestampToDate(timestamp) {
+          var result = new Date(0);
+          result.setUTCSeconds(timestamp);
+          return result;
+        }
+
+        function allignTimestampToMonth(timestamp) {
+          function padMonth(month) {
+            if (month < 10) {
+              return "0" + month;
+            } else {
+              return "" + month;
+            }
+          }
+          var date = timestampToDate(timestamp);
+          return new Date(date.getUTCFullYear() + "-" + padMonth(date.getUTCMonth() + 1) + "-01T00:00:00Z");
+        }
+
+        function allignTimestampToDay(timestamp) {
+          var timeGranularity = 1 * 60 * 60 * 24; //1d
+          return timestampToDate(Math.floor((timestamp) / timeGranularity) * timeGranularity);
+        }
+
+        function allignTimestampToWeek(timestamp) {
+          var timeShift = 4 * 60 * 60 * 24; // epoch is Thursday
+          var timeGranularity = 7 * 60 * 60 * 24; //1d
+          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity + timeShift - 7 * 60 * 60 * 24);
+        }
+
+        function allignTimestamp(e) {
+          timestamp = e.time / 1000;
+          if (params.unit == 'day') {
+            return allignTimestampToDay(timestamp);
+          } else if (params.unit == 'week') {
+            return allignTimestampToWeek(timestamp);
+          } else if (params.unit == 'month') {
+            return allignTimestampToMonth(timestamp);
+          } else {
+            return new Date();
+          }
+        }
+
+        function deploymentsFilter(e) {
+          task = e.properties.task;
+          return task.startsWith("stage_and_deploy") || task.startsWith("deploy") || task.startsWith("copy_artifact");
+        }
+
+        function countElapsedReducer(a, b) {
+          result = {elapsed: 0, count: 0};
+          for (var i in a) {
+            result.elapsed += a[i].elapsed;
+            result.count += a[i].count;
+          }
+          
+          for (i in b) {
+            result.count += 1;
+            result.elapsed += b[i].properties.elapsed_sec;
+          }
+          
+          return result;
+        }
+
+        function reduceOnFirstField(a, b) {
+          result = {};
+          
+          for (var i in a) {
+            for (var k in a[i]) {
+              if (!result.hasOwnProperty(k)) {
+                result[k] = {};
+              }
+              for (var l in a[i][k]) {
+                if (!result[k].hasOwnProperty(l)) {
+                  result[k][l] = a[i][k][l];
+                } else {
+                  result[k][l] += a[i][k][l];
+                }
+              }
+            }
+          }
+          for (var i in b) {
+            key = b[i].key[1];
+            if (!result.hasOwnProperty(key)) {
+              result[key] = {};
+            }
+            for (var l in b[i].value) {
+              if (!result[key].hasOwnProperty(l)) {
+                result[key][l] = b[i].value[l];
+              } else {
+                result[key][l] += b[i].value[l];
+              }
+            }
+          }
+          return result;
+        }
+
+        function main() {
+          return Events({
+            from_date: params.from_date,
+            to_date: params.to_date,
+            event_selectors: [{'event': 'Fabric command'}]
+          })
+          .filter(deploymentsFilter)
+          .groupBy(["properties.task", allignTimestamp], countElapsedReducer)
+          .groupBy([function (e) {return e.key[0]}], reduceOnFirstField)
+          ;
+        }
+    <script/>
     
     <script type="text/jql" id="buildBotFailureRateQuery">
         function timestampToDate(timestamp) {
@@ -1489,15 +1608,11 @@
           to_date: endDate.format('YYYY-MM-DD')
         }
         // Night time escalations
-        // TODO: 945801 after change to allowed_projects populated
-        
-        //getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 620033}).done(function(creds) {
-        
-          //creds.apiKey, creds.apiSecret
+        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
             script: $.trim($("#nightTimeEscalationsQuery").html()),
-          }, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
+          }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {};
             for (var i in results) {
                 var key = results[i].key[0];
@@ -1513,19 +1628,17 @@
             $('.chart.nigh-time-pages .body').MPChart('setData', chart_data);
             //$('#nightTimeEscalationsElement').jsonView(chart_data);
           })
-        //});
+        });
         
         // End Night time escalations
         
         //Buildbot
         
-        // TODO: 945801 after change to allowed_projects populated
-        //getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 620033}).done(function(creds) {
-          //creds.apiKey, creds.apiSecret
+        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
             script: $.trim($("#buildBotFailureRateQuery").html()),
-          }, "03751d0a0974a16e53779cad4ad43a50", "118d82c206a3bdf64443fca0a789bcc5")).done(function(results) {
+          }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {master: {}};
             for (var i in results) {
                 chart_data[results[i].key[0]] = {}
@@ -1535,8 +1648,28 @@
             }
             $('.chart.build-bot .body').MPChart('setData', chart_data);
           })
-        //});
+        });
         // End Buildbot
+        
+        // Fab
+        
+        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
+          $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
+            params: JSON.stringify(globalParams),
+            script: $.trim($("#fabDeployQuery").html()),
+          }, creds.apiKey, creds.apiSecret)).done(function(results) {
+            var chart_data = {master: {}};
+            for (var i in results) {
+                chart_data[results[i].key[0]] = {}
+                for (var k in results[i].value) {
+                    chart_data[results[i].key[0]][k] = results[i].value[k].count
+                }
+            }
+            $('.chart.build-bot .body').MPChart('setData', chart_data);
+          })
+        });
+        
+        // End Fab
         
       } // End sre
     }
