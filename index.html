@@ -1653,7 +1653,7 @@
         
         // Fab
         
-        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
+        /*getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
             script: $.trim($("#fabDeployQuery").html()),
@@ -1667,7 +1667,7 @@
             }
             $('.chart.build-bot .body').MPChart('setData', chart_data);
           })
-        });
+        });*/
         
         // End Fab
         
