@@ -1626,14 +1626,12 @@
                 chart_data[key] = results[i].value;
             }
             $('.chart.nigh-time-pages .body').MPChart('setData', chart_data);
-            //$('#nightTimeEscalationsElement').jsonView(chart_data);
           })
         });
         
         // End Night time escalations
         
         //Buildbot
-        
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
