@@ -719,9 +719,9 @@
         }
 
         function allignTimestampToWeek(timestamp) {
-          var timeShift = 4 * 60 * 60 * 24; // epoch is Thursday
+          var timeShift = 3 * 60 * 60 * 24; // epoch is Thursday
           var timeGranularity = 7 * 60 * 60 * 24; //1d
-          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity + timeShift - 7 * 60 * 60 * 24);
+          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity - timeShift);
         }
 
         function allignTimestamp(timestamp) {
@@ -825,9 +825,9 @@
         }
 
         function allignTimestampToWeek(timestamp) {
-          var timeShift = 4 * 60 * 60 * 24; // epoch is Thursday
+          var timeShift = 3 * 60 * 60 * 24; // epoch is Thursday
           var timeGranularity = 7 * 60 * 60 * 24; //1d
-          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity + timeShift - 7 * 60 * 60 * 24);
+          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity - timeShift);
         }
 
         function allignTimestamp(timestamp) {
@@ -954,9 +954,9 @@
         }
 
         function allignTimestampToWeek(timestamp) {
-          var timeShift = 4 * 60 * 60 * 24; // epoch is Thursday
+          var timeShift = 3 * 60 * 60 * 24; // epoch is Thursday
           var timeGranularity = 7 * 60 * 60 * 24; //1d
-          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity + timeShift - 7 * 60 * 60 * 24);
+          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity - timeShift);
         }
 
         function allignTimestamp(timestamp) {
