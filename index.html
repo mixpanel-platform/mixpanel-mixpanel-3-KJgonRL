@@ -1529,7 +1529,7 @@
             var chart_data = {master: {}};
             for (var i in results) {
                 chart_data[results[i].key[0]] = {}
-                for (var k in result[i].value) {
+                for (var k in results[i].value) {
                     chart_data[results[i].key[0]][k] = results[i].value[k].failure
                 }
             }
