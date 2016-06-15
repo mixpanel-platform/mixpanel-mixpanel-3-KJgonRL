@@ -668,7 +668,7 @@
         
       <div class="chart build-bot">
         <div class="header">
-          <div class="title">Buildbod failre rate %</div>
+          <div class="title">Build failre rate %</div>
             <div class="help-tip">
                 <p class="tooltip">failure / (success + failure) * 100%</p>
             </div>
@@ -852,6 +852,7 @@
 
         function main() {
           return Events({event_selectors: [{event: 'Buildbot finished'}], from_date: params.from_date, to_date: params.to_date})
+          .filter(function(e) {return e.properties.branch == "master"})
           .groupBy([allignTimestamp], resultReducer)
           ;
         }
