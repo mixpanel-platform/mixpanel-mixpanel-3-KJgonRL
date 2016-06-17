@@ -1600,7 +1600,7 @@
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#nightTimeNotificationsQuery").html()),
+            script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#nightTimeNotificationsQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {};
             for (var i in results) {
@@ -1615,7 +1615,7 @@
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#pageEscalationsQuery").html()),
+            script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#pageEscalationsQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {};
             for (var i in results) {
@@ -1630,7 +1630,7 @@
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#buildBotFailureRateQuery").html()),
+            script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#buildBotFailureRateQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {master: {}};
             for (var i in results) {
@@ -1649,7 +1649,7 @@
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#fabDeployQuery").html()),
+            script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#fabDeployQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {master: {}};
             for (var i in results) {
