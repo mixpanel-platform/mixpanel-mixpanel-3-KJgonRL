@@ -1688,7 +1688,7 @@
             params: JSON.stringify(globalParams),
             script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#buildBotFailureRateQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
-            var chart_data = {master: {}};
+            var chart_data = {};
             for (var i in results) {
                 chart_data[results[i].key[0]] = {}
                 for (var k in results[i].value) {
@@ -1706,7 +1706,7 @@
             params: JSON.stringify(globalParams),
             script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#buildBotTimeQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
-            var chart_data = {master: {}};
+            var chart_data = {};
             for (var i in results) {
                 chart_data[results[i].key[0]] = {}
                 for (var k in results[i].value) {
