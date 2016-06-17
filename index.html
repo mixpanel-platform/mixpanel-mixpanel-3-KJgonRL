@@ -663,9 +663,15 @@
         </div>
         <div class="body"></div>
       </div>
-        <!--<div class="result" id="nightTimeEscalationsElement">
-         </div>-->
-        
+      <div class="chart escalated-pages">
+        <div class="header">
+          <div class="title">Page escalations</div>
+            <div class="help-tip">
+                <p class="tooltip">Number of incidents that has been escalated. Explicit - From App/Web/SMS/Call; Implicit - Timeout</p>
+            </div>
+        </div>
+        <div class="body"></div>
+      </div>
       <div class="chart build-bot">
         <div class="header">
           <div class="title">Buildbot failed stages</div>
@@ -686,122 +692,9 @@
         <div class="body"></div>
       </div>
     </div>
-     
-    <script type="text/jql" id="nightTimeEscalationsQuery">
-        function timestampToDate(timestamp) {
-          var result = new Date(0);
-          result.setUTCSeconds(timestamp);
-          return result;
-        }
-
-        nightEnd = 9;
-        nightStart = 22;
-
-        function isNight(date) {
-          return date.getHours() < nightEnd  || date.getHours() >= nightStart;
-        }
-
-        function allignTimestampToMonth(timestamp) {
-          function padMonth(month) {
-            if (month < 10) {
-              return "0" + month
-            } else {
-              return "" + month
-            }
-          }
-          var date = timestampToDate(timestamp);
-          return new Date(date.getUTCFullYear() + "-" + padMonth(date.getUTCMonth() + 1) + "-01T00:00:00Z");
-        }
-
-        function allignTimestampToDay(timestamp) {
-          var timeGranularity = 1 * 60 * 60 * 24; //1d
-          return timestampToDate(Math.floor((timestamp) / timeGranularity) * timeGranularity);
-        }
-
-        function allignTimestampToWeek(timestamp) {
-          var timeShift = 3 * 60 * 60 * 24; // epoch is Thursday
-          var timeGranularity = 7 * 60 * 60 * 24; //1d
-          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity - timeShift);
-        }
-
-        function allignTimestamp(timestamp) {
-          if (params.unit == 'day') {
-            return allignTimestampToDay(timestamp);
-          } else if (params.unit == 'week') {
-            return allignTimestampToWeek(timestamp);
-          } else if (params.unit == 'month') {
-            return allignTimestampToMonth(timestamp);
-          } else {
-            return new Date();
-          }
-        }
-
-        function allignEventTime(t) {
-          if (t.event === undefined)
-             return null;
-             
-          var timeGranularity = 60 * 60 * 24; //1d
-          return timestampToDate(
-            // If incident occured after nightEnd it will be accaunted to day of occurence otherwise to previous day
-            Math.floor((t.event.properties.created_at / 1000 - nightEnd * 60 * 60) / timeGranularity) * timeGranularity
-          );
-        }
-
-        function eventsFilter(t) {
-            if (t.user === undefined || t.event === undefined)
-              return false;
-            if (t.user.properties.urgency != 'high')
-              return false;
-            if (t.event.name == "pagerduty.incident.notify" && t.event.properties.notification.type == "email")
-              return false;
-            if (!isNight(t.event.properties.created_at))
-              return false;
-            return true;
-        }
-
-        function computeEscalations(t) {
-            var current = Date.parse(params.from_date) / 1000;
-            var end = Date.parse(params.to_date) / 1000;
-            var v = {};
-            while (current <= end) {
-              var currentDateKey = allignTimestamp(current).toISOString().split('T')[0];
-              var currentDate = timestampToDate(current);
-              if (!v.hasOwnProperty(currentDateKey)) {
-                v[currentDateKey] = 0;
-              }
-              if (t.value.hasOwnProperty(currentDate)) {
-                v[currentDateKey] += t.value[currentDate];
-              }
-              current += 24 * 60 * 60;
-            }
-            t.value = v;
-            return t;
-        }
-
-        function main() {
-          return join(
-            Events({from_date: params.from_date, to_date: params.to_date, event_selectors: [{event: 'pagerduty.incident.notify'}]}), People()
-          )
-          .filter(eventsFilter)
-          .groupBy(['user.properties.escalation_policy_name', allignEventTime], function(a, b) {return 1;})
-          .groupBy([function(t){return t.key[0]}], function(a, b) {
-            var result = {};
-            for (var i in a) {
-              for (var k in a[i])
-                 result[k] = a[i][k];
-            }
-            for (i in b) {
-              result[timestampToDate(Date.parse(b[i].key[1]) / 1000)] = b[i].value;
-            }
-            return result;
-          })
-          .map(computeEscalations)
-          ;
-        }
-    </script>
     
-    <script type="text/jql" id="fabDeployQuery">
-        function timestampToDate(timestamp) {
+    <script type="text/jql" id="commonJQLQueryLib">
+       function timestampToDate(timestamp) {
           var result = new Date(0);
           result.setUTCSeconds(timestamp);
           return result;
@@ -841,28 +734,33 @@
             return new Date();
           }
         }
-
-        function deploymentsFilter(e) {
-          task = e.properties.task;
-          return task.startsWith("stage_and_deploy") || task.startsWith("deploy") || task.startsWith("copy_artifact");
-        }
-
-        function countElapsedReducer(a, b) {
-          result = {elapsed: 0, count: 0};
-          for (var i in a) {
-            result.elapsed += a[i].elapsed;
-            result.count += a[i].count;
+        
+        function escalationPolicyName(t) {
+          result = t.user.properties.escalation_policy_name;
+          if (result.startsWith("Ops lead (")) {
+            if (result.endsWith(" first)")) {
+                result = result.substr(10, result.length - 17);
+            } else {
+                result = result.substr(10, result.length - 10);
+            }
           }
-          
-          for (i in b) {
-            result.count += 1;
-            result.elapsed += b[i].properties.elapsed_sec;
-          }
-          
           return result;
         }
-
-        function reduceOnFirstField(a, b) {
+        
+        function dateReducer(a, b) {
+          var result = {};
+          for (var i in a) {
+            for (var k in a[i])
+               result[k] = a[i][k];
+          }
+          for (i in b) {
+            result[timestampToDate(Date.parse(b[i].key[1]) / 1000)] = b[i].value;
+          }
+          return result;
+        }
+        
+        //TODO: dateReducer can be done as reduceOnFirstField
+        function reduceOnFirstField(a, b) { 
           result = {};
           
           for (var i in a) {
@@ -892,6 +790,130 @@
               }
             }
           }
+          return result;
+        }
+    </script>
+    
+    <script type="text/jql" id="pageEscalationsQuery">
+        function isExplicitEscalation(t) {
+          if (t.event.properties.channel.type == "timeout") {
+            return "Implicit";
+          } else {
+            return "Explicit";
+          }
+        }
+
+        function fillDateGaps(t) {
+          var current = Date.parse(params.from_date) / 1000;
+          var end = Date.parse(params.to_date) / 1000;
+          var v = {};
+          while (current <= end) {
+            var currentDateKey = allignTimestamp(current).toISOString().split('T')[0];
+            var currentDate = timestampToDate(current);
+            if (!v.hasOwnProperty(currentDateKey)) {
+              v[currentDateKey] = 0;
+            }
+            if (t.value.hasOwnProperty(currentDate)) {
+              v[currentDateKey] += t.value[currentDate];
+            }
+            current += 24 * 60 * 60;
+          }
+          t.value = v;
+          return t;
+        }
+
+        function main() {
+            return join(Events({from_date: params.from_date, to_date: params.to_date, event_selectors: [{event: 'pagerduty.incident.escalate'}]}), People())
+            .filter(function (t) {return t.event !== undefined && t.user !== undefined})
+            .groupBy([escalationPolicyName, isExplicitEscalation, function (t) {return allignTimestampToDay(t.event.time / 1000)}, "event.distinct_id"], mixpanel.reducer.count())
+            .groupBy([function (t) {return [t.key[0] + " " + t.key[1], t.key[2]]}], mixpanel.reducer.count())
+            .groupBy([function (t) {return t.key[0]}], dateReducer)
+            .map(fillDateGaps)
+            ;
+        }
+    </script>
+     
+    <script type="text/jql" id="nightTimeNotificationsQuery">
+        nightEnd = 9;
+        nightStart = 22;
+
+        function isNight(date) {
+          return date.getHours() < nightEnd  || date.getHours() >= nightStart;
+        }
+
+        function allignEventTime(t) {
+          if (t.event === undefined)
+             return null;
+             
+          var timeGranularity = 60 * 60 * 24; //1d
+          return timestampToDate(
+            // If incident occured after nightEnd it will be accaunted to day of occurence otherwise to previous day
+            Math.floor((t.event.properties.created_at / 1000 - nightEnd * 60 * 60) / timeGranularity) * timeGranularity
+          );
+        }
+
+        function eventsFilter(t) {
+            if (t.user === undefined || t.event === undefined)
+              return false;
+            if (t.user.properties.urgency != 'high')
+              return false;
+            if (t.event.name == "pagerduty.incident.notify" && t.event.properties.notification.type == "email")
+              return false;
+            if (!isNight(t.event.properties.created_at))
+              return false;
+            return true;
+        }
+
+        function computeNotifications(t) {
+            var current = Date.parse(params.from_date) / 1000;
+            var end = Date.parse(params.to_date) / 1000;
+            var v = {};
+            while (current <= end) {
+              var currentDateKey = allignTimestamp(current).toISOString().split('T')[0];
+              var currentDate = timestampToDate(current);
+              if (!v.hasOwnProperty(currentDateKey)) {
+                v[currentDateKey] = 0;
+              }
+              if (t.value.hasOwnProperty(currentDate)) {
+                v[currentDateKey] += t.value[currentDate];
+              }
+              current += 24 * 60 * 60;
+            }
+            t.value = v;
+            return t;
+        }
+        
+
+        function main() {
+          return join(
+            Events({from_date: params.from_date, to_date: params.to_date, event_selectors: [{event: 'pagerduty.incident.notify'}]}), People()
+          )
+          .filter(eventsFilter)
+          .groupBy([escalationPolicyName, allignEventTime], function(a, b) {return 1;})
+          .groupBy([function(t){return t.key[0]}], dateReducer)
+          .map(computeNotifications)
+          ;
+        }
+    </script>
+    
+    <script type="text/jql" id="fabDeployQuery">
+        function deploymentsFilter(e) {
+          task = e.properties.task;
+          return task.startsWith("stage_and_deploy") || task.startsWith("deploy") || task.startsWith("copy_artifact");
+        }
+
+        function countElapsedReducer(a, b) {
+          result = {elapsed: 0, count: 0};
+          for (var i in a) {
+            result.elapsed += a[i].elapsed;
+            result.count += a[i].count;
+          }
+          
+          for (i in b) {
+            result.count += 1;
+            result.elapsed += b[i].properties.elapsed_sec;
+          }
+          
           return result;
         }
 
@@ -930,47 +952,6 @@
     </script>
     
     <script type="text/jql" id="buildBotFailureRateQuery">
-        function timestampToDate(timestamp) {
-          var result = new Date(0);
-          result.setUTCSeconds(timestamp);
-          return result;
-        }
-
-        function allignTimestampToMonth(timestamp) {
-          function padMonth(month) {
-            if (month < 10) {
-              return "0" + month;
-            } else {
-              return "" + month;
-            }
-          }
-          var date = timestampToDate(timestamp);
-          return new Date(date.getUTCFullYear() + "-" + padMonth(date.getUTCMonth() + 1) + "-01T00:00:00Z");
-        }
-
-        function allignTimestampToDay(timestamp) {
-          var timeGranularity = 1 * 60 * 60 * 24; //1d
-          return timestampToDate(Math.floor((timestamp) / timeGranularity) * timeGranularity);
-        }
-
-        function allignTimestampToWeek(timestamp) {
-          var timeShift = 3 * 60 * 60 * 24; // epoch is Thursday
-          var timeGranularity = 7 * 60 * 60 * 24; //1d
-          return timestampToDate(Math.floor((timestamp + timeShift) / timeGranularity) * timeGranularity - timeShift);
-        }
-
-        function allignTimestamp(timestamp) {
-          if (params.unit == 'day') {
-            return allignTimestampToDay(timestamp);
-          } else if (params.unit == 'week') {
-            return allignTimestampToWeek(timestamp);
-          } else if (params.unit == 'month') {
-            return allignTimestampToMonth(timestamp);
-          } else {
-            return new Date();
-          }
-        }
-
         function resultReducer(a, b) {
          result = {success: 0, failure: 0};
          for (var i in a) {
@@ -988,39 +969,6 @@
           return result;
         }
 
-        function reduceOnFirstField(a, b) {
-          result = {};
-          
-          for (var i in a) {
-            for (var k in a[i]) {
-              if (!result.hasOwnProperty(k)) {
-                result[k] = {};
-              }
-              for (var l in a[i][k]) {
-                if (!result[k].hasOwnProperty(l)) {
-                  result[k][l] = a[i][k][l];
-                } else {
-                  result[k][l] += a[i][k][l];
-                }
-              }
-            }
-          }
-          for (var i in b) {
-            key = b[i].key[1];
-            if (!result.hasOwnProperty(key)) {
-              result[key] = {};
-            }
-            for (var l in b[i].value) {
-              if (!result[key].hasOwnProperty(l)) {
-                result[key][l] = b[i].value[l];
-              } else {
-                result[key][l] += b[i].value[l];
-              }
-            }
-          }
-          return result;
-        }
-        
         function fillDateGaps(t) {
           var current = Date.parse(params.from_date) / 1000;
           var end = Date.parse(params.to_date) / 1000;
@@ -1648,36 +1596,41 @@
           from_date: startDate.format('YYYY-MM-DD'),
           to_date: endDate.format('YYYY-MM-DD')
         }
-        // Night time escalations
+        // Night time notifications
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#nightTimeEscalationsQuery").html()),
+            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#nightTimeNotificationsQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {};
             for (var i in results) {
-                var key = results[i].key[0];
-                if (key.startsWith("Ops lead (")) {
-                    if (key.endsWith(" first)")) {
-                        key = key.substr(10, key.length - 17)
-                    } else {
-                        key = key.substr(10, key.length - 10)
-                    }
-                }
-                chart_data[key] = results[i].value;
+                chart_data[results[i].key[0]] = results[i].value;
             }
             $('.chart.nigh-time-pages .body').MPChart('setData', chart_data);
-            //$('#nightTimeEscalationsElement').jsonView(chart_data);
           })
         });
+        // End Night time notifications
         
-        // End Night time escalations
+        // Page Escalations
+        getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
+          $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
+            params: JSON.stringify(globalParams),
+            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#pageEscalationsQuery").html()),
+          }, creds.apiKey, creds.apiSecret)).done(function(results) {
+            var chart_data = {};
+            for (var i in results) {
+                chart_data[results[i].key[0]] = results[i].value;
+            }
+            $('.chart.escalated-pages .body').MPChart('setData', chart_data);
+          })
+        });
+        // End Page Escalations
         
         //Buildbot
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#buildBotFailureRateQuery").html()),
+            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#buildBotFailureRateQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {master: {}};
             for (var i in results) {
@@ -1696,7 +1649,7 @@
         getWithCredentials('https://mixpanel.com/admin/internal/api/project_credentials', {project_id: 945801}).done(function(creds) {
           $.post("https://mixpanel.com/api/2.0/custom_query_v1", signData({
             params: JSON.stringify(globalParams),
-            script: $.trim($("#fabDeployQuery").html()),
+            script: $.trim($("#commonJQLQueryLib").html() + "\n" + $.trim($("#fabDeployQuery").html()),
           }, creds.apiKey, creds.apiSecret)).done(function(results) {
             var chart_data = {master: {}};
             for (var i in results) {
