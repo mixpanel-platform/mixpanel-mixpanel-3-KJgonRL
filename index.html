@@ -1097,17 +1097,17 @@
     
     <script type="text/jql" id="jenkinsFailureRateQuery">
         function resultReducer(a, b) {
-         result = {success: 0, failure: 0};
-         for (var i in a) {
+          result = {success: 0, failure: 0};
+          for (var i in a) {
             result.success += a[i].success;
             result.failure += a[i].failure;
           }
           
           for (var i in b) {
-            if (b[i].properties.status == "skipped" || b[i].properties.status === undefined) {
+            if (b[i].event.properties.status == "skipped" || b[i].event.properties.status === undefined) {
               continue;
             }
-            if (b[i].properties.status != "success") {
+            if (b[i].event.properties.status != "success") {
               result.failure += 1;
             } else {
               result.success += 1;
@@ -1117,9 +1117,12 @@
         }
 
         function main() {
-          return Events({event_selectors: [{event: 'jenkins.step.finish'}], from_date: jenkinsStartDate(params.from_date), to_date: params.to_date})
+          return join(
+            People(),
+            Events({event_selectors: [{event: 'jenkins.step.finish'}], from_date: jenkinsStartDate(params.from_date), to_date: params.to_date})
+            )
           .filter(filterJenkinsMasterBuilds)
-          .groupBy([jenkinsStepName, function (e) {return allignTimestampToDay(e.time / 1000)}], resultReducer)
+          .groupBy([function(r) { return jenkinsStepName(r.event); }, function (r) {return allignTimestampToDay(r.event.time / 1000)}], resultReducer)
           .groupBy([function(e) {return e.key[0]}], reduceOnTheFirstField)
           .map(fillDateGaps(function(){ return {success:0, failure:0}; }, function(a, b){ a.success += b.success; a.failure += b.failure; return a; }))
           ;
