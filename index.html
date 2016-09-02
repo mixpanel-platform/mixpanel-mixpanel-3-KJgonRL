@@ -876,8 +876,12 @@
           }
           return _fillDateGaps;
         }
+        
+        function filterJenkinsMasterBuilds(r) {
+          return r.user !== undefined && r.event !== undefined  && r.user.properties.job !== undefined && r.user.properties.job.NAME == "master" && r.user.properties.git !== undefined && r.user.properties.git.BRANCH == "origin/master";
+        }
 
-        function jenkinsBuildEvents() { return [{event: 'jenkins.build.start'}, {event: 'jenkins.build.finish'}, {event: 'jenkins.step.start'}, {event: 'jenkins.step.finish'}]; }
+        var jenkinsBuildEvents = [{event: 'jenkins.build.start'}, {event: 'jenkins.build.finish'}, {event: 'jenkins.step.start'}, {event: 'jenkins.step.finish'}];
 
         function jenkinsBuildsReducer(a, b) {
           result = {start: undefined, finish: undefined, status: undefined, steps: {}};
@@ -1099,7 +1103,7 @@
         function main() {
           return join(
             People(),
-            Events({event_selectors: jenkinsBuildEvents(), from_date: params.from_date, to_date: params.to_date})
+            Events({event_selectors: jenkinsBuildEvents, from_date: params.from_date, to_date: params.to_date})
             )
             .filter(filterJenkinsMasterBuilds)
             .groupBy(["event.distinct_id"], jenkinsBuildsReducer)
