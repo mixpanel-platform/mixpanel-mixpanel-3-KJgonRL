@@ -886,7 +886,6 @@
         function jenkinsStartDate(dt) {
            var requestedStart = Date.parse(dt) / 1000;
            var dataStart = Date.parse("2016-07-26") / 1000;
-           console.log(allignTimestampToDay(Math.max(requestedStart, dataStart)).toISOString().split('T')[0]);
            return allignTimestampToDay(Math.max(requestedStart, dataStart)).toISOString().split('T')[0];
         }
 
