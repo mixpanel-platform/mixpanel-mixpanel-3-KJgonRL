@@ -1777,15 +1777,18 @@
               script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#jenkinsTimeQuery").html()),
             }, creds.apiKey, creds.apiSecret)).done(function(jenkins_results) {
               var chart_data = {};
-              c = ["Buildbot", buildbot_results]
+              builds = [["Buildbot", buildbot_results], ["Jenkins", jenkins_results]]
+              for (var j in builds)
               {
-                for (var i in c[1]) {
-                  chart_data[c[1][i].key[0]] = {}
-                  for (var k in c[1][i].value) {
-                    if (c[1][i].value[k].count > 0) {
-                      chart_data[c[1][i].key[0]][c[0] + " " + k] = Math.floor(c[1][i].value[k].elapsed / c[1][i].value[k].count);
+                name = builds[j][0];
+                results = builds[j][1];
+                for (var i in results) {
+                  chart_data[results[i].key[0]] = {};
+                  for (var k in results[i].value) {
+                    if (results[i].value[k].count > 0) {
+                      chart_data[name + " " + results[i].key[0]][ + k] = Math.floor(results[i].value[k].elapsed / results[i].value[k].count);
                     } else {
-                      chart_data[c[1][i].key[0]][c[0] + " " + k] = 0
+                      chart_data[name + " " + results[i].key[0]][k] = 0;
                     }
                   }
                 }
