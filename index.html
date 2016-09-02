@@ -1783,10 +1783,10 @@
                 name = builds[j][0];
                 results = builds[j][1];
                 for (var i in results) {
-                  chart_data[results[i].key[0]] = {};
+                  chart_data[name + " " + results[i].key[0]] = {};
                   for (var k in results[i].value) {
                     if (results[i].value[k].count > 0) {
-                      chart_data[name + " " + results[i].key[0]][ + k] = Math.floor(results[i].value[k].elapsed / results[i].value[k].count);
+                      chart_data[name + " " + results[i].key[0]][k] = Math.floor(results[i].value[k].elapsed / results[i].value[k].count);
                     } else {
                       chart_data[name + " " + results[i].key[0]][k] = 0;
                     }
