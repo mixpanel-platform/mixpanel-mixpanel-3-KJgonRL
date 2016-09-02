@@ -674,21 +674,21 @@
         <div class="body"></div>
       </div>
       
-      <div class="chart build-bot-failure">
-        <div class="header">
-          <div class="title">Test failures on master</div>
-            <div class="help-tip">
-                <p class="tooltip">Continuous integration tests run on the build system that failed on master. These shouldn't happen as a general rule and disruptive to other teams.They are broken out by stage. (<a target="_blank" href="https://mixpanel.com/report/945801/segmentation/#action:segment,arb_event:'Buildbot%20step%20finished',bool_op:and,chart_analysis_type:linear,chart_type:line,from_date:-365,ms_checked:('build%20and%20setup':!t,'clean%20repo%20test':!t,'clean%20shutdown':!t,'clojure%20tests':!t,'go%20tests':!t,'js%20tests':!t,'other%20tests':!t,'processing%20tests':!t),ms_values:!('go%20tests','other%20tests','processing%20tests','clojure%20tests','clean%20shutdown','clean%20repo%20test','build%20and%20setup','js%20tests'),segfilter:!((dropdown_tab_index:0,filter:(operand:!(master),operator:%3D%3D),property:(name:branch,source:properties,type:string),selected_property_type:string,type:string),(dropdown_tab_index:0,filter:(operand:!(success),operator:'!!%3D'),property:(name:step_status,source:properties,type:string),selected_property_type:string,type:string),(dropdown_tab_index:0,property:(name:step_name,source:properties,type:string),selected_property_type:string,type:string)),segment_type:string,to_date:0,type:unique,unit:month">source</a>)</p>
-            </div>
-        </div>
-        <div class="body"></div>
-      </div>
-      
       <div class="chart build-bot-test-time">
         <div class="header">
           <div class="title">Average time to run tests (in seconds).</div>
             <div class="help-tip">
                 <p class="tooltip">(<a target="_blank" href="https://mixpanel.com/report/945801/segmentation/#action:average,arb_event:'Buildbot%20finished',bool_op:and,chart_analysis_type:linear,chart_type:line,from_date:-365,ms_checked:('Buildbot%20finished':!t),ms_values:!('Buildbot%20finished'),segfilter:!((dropdown_tab_index:0,filter:(operand:!(success),operator:%3D%3D),property:(name:build_status,source:properties,type:string),selected_property_type:string,type:string),(dropdown_tab_index:0,property:(name:build_elapsed_sec,source:properties,type:number),selected_property_type:number,type:number)),segment_type:number,to_date:0,type:unique,unit:month">source</a>)</p>
+            </div>
+        </div>
+        <div class="body"></div>
+      </div>
+      
+      <div class="chart build-bot-failure">
+        <div class="header">
+          <div class="title">Test failures on master</div>
+            <div class="help-tip">
+                <p class="tooltip">Continuous integration tests run on the build system that failed on master. These shouldn't happen as a general rule and disruptive to other teams.They are broken out by stage. (<a target="_blank" href="https://mixpanel.com/report/945801/segmentation/#action:segment,arb_event:'Buildbot%20step%20finished',bool_op:and,chart_analysis_type:linear,chart_type:line,from_date:-365,ms_checked:('build%20and%20setup':!t,'clean%20repo%20test':!t,'clean%20shutdown':!t,'clojure%20tests':!t,'go%20tests':!t,'js%20tests':!t,'other%20tests':!t,'processing%20tests':!t),ms_values:!('go%20tests','other%20tests','processing%20tests','clojure%20tests','clean%20shutdown','clean%20repo%20test','build%20and%20setup','js%20tests'),segfilter:!((dropdown_tab_index:0,filter:(operand:!(master),operator:%3D%3D),property:(name:branch,source:properties,type:string),selected_property_type:string,type:string),(dropdown_tab_index:0,filter:(operand:!(success),operator:'!!%3D'),property:(name:step_status,source:properties,type:string),selected_property_type:string,type:string),(dropdown_tab_index:0,property:(name:step_name,source:properties,type:string),selected_property_type:string,type:string)),segment_type:string,to_date:0,type:unique,unit:month">source</a>)</p>
             </div>
         </div>
         <div class="body"></div>
@@ -882,6 +882,12 @@
         }
 
         var jenkinsBuildEvents = [{event: 'jenkins.build.start'}, {event: 'jenkins.build.finish'}, {event: 'jenkins.step.start'}, {event: 'jenkins.step.finish'}];
+        
+        function jenkinsStartDate(dt) {
+           var requestedStart = Date.parse(dt);
+           var dataStart = Date.parse("2016-07-26");
+           return allignTimestampToDay(Math.max(requestedStart, dataStart)).toISOString().split('T')[0];
+        }
 
         function jenkinsBuildsReducer(a, b) {
           result = {start: undefined, finish: undefined, status: undefined, steps: {}};
@@ -1103,7 +1109,7 @@
         function main() {
           return join(
             People(),
-            Events({event_selectors: jenkinsBuildEvents, from_date: params.from_date, to_date: params.to_date})
+            Events({event_selectors: jenkinsBuildEvents, from_date: jenkinsStartDate(params.from_date), to_date: params.to_date})
             )
             .filter(filterJenkinsMasterBuilds)
             .groupBy(["event.distinct_id"], jenkinsBuildsReducer)
@@ -1783,12 +1789,12 @@
                 name = builds[j][0];
                 results = builds[j][1];
                 for (var i in results) {
-                  chart_data[name + " " + results[i].key[0]] = {};
+                  chart_data[name] = {};
                   for (var k in results[i].value) {
                     if (results[i].value[k].count > 0) {
-                      chart_data[name + " " + results[i].key[0]][k] = Math.floor(results[i].value[k].elapsed / results[i].value[k].count);
+                      chart_data[name][k] = Math.floor(results[i].value[k].elapsed / results[i].value[k].count);
                     } else {
-                      chart_data[name + " " + results[i].key[0]][k] = 0;
+                      chart_data[name][k] = 0;
                     }
                   }
                 }
