@@ -1110,7 +1110,7 @@
         function main() {
           return join(
             People(),
-            Events({event_selectors: jenkinsBuildEvents, from_date: jenkinsStartDate(params.from_date), to_date: params.to_date})
+            Events({event_selectors: jenkinsBuildEvents, from_date: "2016-07-26", to_date: params.to_date})
             )
             .filter(filterJenkinsMasterBuilds)
             .groupBy(["event.distinct_id"], jenkinsBuildsReducer)
