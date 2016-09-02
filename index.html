@@ -1777,7 +1777,7 @@
               script: $.trim($("#commonJQLQueryLib").html()) + "\n" + $.trim($("#jenkinsTimeQuery").html()),
             }, creds.apiKey, creds.apiSecret)).done(function(jenkins_results) {
               var chart_data = {};
-              for (var c in [["Buildbot", buildbot_results]])
+              c = ["Buildbot", buildbot_results]
               {
                 for (var i in c[1]) {
                   chart_data[c[1][i].key[0]] = {}
