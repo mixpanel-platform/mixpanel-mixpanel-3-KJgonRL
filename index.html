@@ -949,11 +949,7 @@
           if (build.status == "success") {
             return "success";
           }
-          
-          if (build.status === undefined) {
-            return "aborted";
-          }
-          
+
           step = "unknown";
           step_finish = undefined;
           
